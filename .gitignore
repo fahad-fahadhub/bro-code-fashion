@@ -1,0 +1,17 @@
+node_modules/
+__pycache__/
+pipeline/clean/
+pipeline/up/
+pipeline/vid/
+tests/out/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Private keys and credentials
+*.pem
+*.key
+credentials.json
+secrets.json

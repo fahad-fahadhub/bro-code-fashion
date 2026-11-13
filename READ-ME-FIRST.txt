@@ -1,0 +1,48 @@
+BRO CODE FASHION - WEBSITE (ready to put online)
+=================================================
+
+WHAT IS IN THIS ZIP
+  website/            the complete site. This whole folder is what you upload.
+  README.md           guide for a developer: how the code is organised, how to rebuild, how to test.
+  build_site.py, src/, assets/, static/, pipeline/, tests/   the source code (not needed to put the site online).
+  READ-ME-FIRST.txt   this file.
+
+HOW ORDERING WORKS ON THE SITE
+  Customer picks a tee and size > opens the bag > Checkout > sees the order summary
+  and types delivery details > taps "Confirm order" > WhatsApp opens to 8296889214
+  with the full order already written (items, sizes, quantities, prices, name,
+  phone, address, order ID). They press Send. There is no pay-now button; payment
+  is arranged with the customer on WhatsApp.
+
+STEP 1 - PUT IT ONLINE (free, about 2 minutes)
+  1. Unzip this file.
+  2. Open https://app.netlify.com/drop in your browser and sign up (free).
+  3. Drag the "website" folder onto the page. You get a live link straight away.
+  (Cloudflare Pages or Vercel work too. Upload the same "website" folder.)
+
+STEP 2 - ADD YOUR PRICES (you have not given prices yet, so the site shows "Price on WhatsApp")
+  1. Open website/assets/js/config.js in Notepad.
+  2. Find the "prices" block. Change null to a number for each tee, for example:
+        "scorpion": 799,
+     Leave null for any tee you want to price on WhatsApp.
+  3. Also check "sizes" (currently S, M, L, XL) and change if needed.
+  4. Save the file and upload the "website" folder again (drag it onto the same Netlify site).
+  Prices then show on the cards, in the bag, in the order summary and in the WhatsApp message.
+
+STEP 3 - ADD INSTAGRAM AND EMAIL LATER
+  In the same config.js file, fill "instagram" (just the handle) and "email".
+  They appear in the Contact section automatically.
+
+STEP 4 - CONNECT YOUR DOMAIN WHEN YOU BUY IT
+  1. Buy the domain (for example from GoDaddy, Namecheap, Hostinger or Cloudflare).
+  2. In Netlify: Site configuration > Domain management > Add a domain. Follow the DNS steps shown.
+     HTTPS (the padlock) turns on automatically.
+  3. Tell Claude the domain. The site is rebuilt with the address set in the search listing,
+     the sharing preview image (WhatsApp, Instagram, Facebook) and the sitemap.
+  4. Add the site to Google Search Console and submit the sitemap.
+
+LATER
+  Google Business Profile: set it up when ready, then we add the Maps link and reviews.
+  Analytics: paste a Google Analytics ID (G-XXXX) or Meta Pixel ID into config.js to switch tracking on.
+  Check the three policy pages (privacy, terms, shipping and returns) and add your own
+  return and exchange rules before you start taking orders at scale.
