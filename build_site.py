@@ -79,7 +79,6 @@ def card(p):
     if len(v)==2: imgs=imgs.replace('alt=""','alt="" aria-hidden="true"')
     return ('<li><article class="pcard" data-r><button class="pimg" type="button" data-open="%s" aria-label="View %s"><span class="tag">%s</span>%s</button>'
             '<div class="pinfo"><h3>%s</h3><span class="c">%s</span><span class="price" data-price="%s">Price on WhatsApp</span><button class="btn" type="button" data-open="%s">Choose size</button></div></article></li>')%(i,p["name"],tag,imgs,p["name"],p["colour"],i,i)
-REEL=[("scorpion","Scorpion Tee"),("eagle","Eagle Tee"),("spider","Neon Web Tee"),("labrown","Rust LA Tee")]
 def rowimgs(keys): return ''.join('<img src="assets/img/a-%s-520.webp" alt="" loading="lazy" width="320" height="256">'%k for k in keys*2)
 def footer(depth=0):
     return ('<footer class="foot"><div class="w"><div class="fgrid"><div>'+LOGO+'<p>Men\'s casual wear from Bengaluru. Order anytime on WhatsApp. We reply 9 AM to 9 PM.</p></div>'
@@ -90,9 +89,6 @@ def footer(depth=0):
 def rel(s): return s.replace('href="/#','href="index.html#').replace('href="/','href="')
 def index(preview=False):
     cards=''.join(card(p) for p in prods)
-    reel_rows=''.join('<p class="row" data-step="%d" data-mode="cur"><span>0%d</span>%s</p>'%(i,i+1,n) for i,(k,n) in enumerate(REEL))
-    reel_imgs=''.join('<img data-step="%d" src="assets/img/a-%s-960.webp" alt="%s styled in an amber-lit frame" loading="lazy" width="960" height="760">'%(i,k,n) for i,(k,n) in enumerate(REEL))
-    reel_btn=''.join('<button type="button" data-step="%d" data-mode="cur" data-open="%s">Shop %s</button>'%(i,k,n) for i,(k,n) in enumerate(REEL))
     h=head("Bro Code Fashion" if preview else TITLE,DESC,"",ldjson(),preview)
     b='<body>\n<a class="skip" href="#shop">Skip to the shop</a>\n'+DEFS+'\n'
     b+='<div class="ann" role="region" aria-label="Ordering and reply hours"><span>Order anytime on WhatsApp</span><i>·</i><span data-status>Replies 9 AM – 9 PM</span></div>\n'
@@ -103,7 +99,6 @@ def index(preview=False):
     b+='<section class="feat" aria-label="Highlights"><div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l6 4 6-4 3 5-4 2v11H7V10L3 8z"/></svg><b>Men\'s casual</b><span>Graphic tees, ready to order.</span></div><div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l3 6 6 1-4.5 4.2L18 21l-6-3.2L6 21l1.5-6.8L3 10l6-1z"/></svg><b>Women\'s ethnic</b><span>Ask us on WhatsApp.</span></div><div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/></svg><b>Order on WhatsApp</b><span>Anytime. We reply 9 AM – 9 PM.</span></div></section>\n'
     b+='<div class="marq" aria-hidden="true"><div>'+''.join('<span>%s</span><i>✦</i>'%s for s in ["Order anytime on WhatsApp","Men's casual wear","Women's ethnic wear","Bengaluru","Replies 9 AM – 9 PM"]*2)+'</div></div>\n'
     b+='<main id="main">\n<section id="shop" class="sec w"><div class="shophd"><div><p class="k" data-r>The drop</p><h2 data-r>Pick your tee</h2></div><p class="lead" data-r style="--d:.1s;margin:0">Tap a tee, choose your size and add it to your bag. Send your order on WhatsApp. Nothing is charged on this website.</p></div><ul class="pgrid">'+cards+'</ul><noscript><p class="note">Ordering on this page needs JavaScript. You can also place your order directly on <a href="https://wa.me/'+WA+'">WhatsApp</a>.</p></noscript></section>\n'
-    b+='<section id="reel" class="reel" data-scrub data-steps="4" aria-label="Look reel"><div class="stick"><div class="rl-list"><p class="k">Look reel</p><h2>Scroll. Drop. Repeat.</h2>'+reel_rows+'</div><div class="rl-view">'+reel_imgs+'<div class="scan" aria-hidden="true"></div><div class="rl-shop">'+reel_btn+'</div></div></div></section>\n'
     b+='<div class="rows" aria-hidden="true"><div class="trk">'+rowimgs(["thisday","unreal","lablack","mythic","silence"])+'</div><div class="trk rev">'+rowimgs(["spider","balance","labrown","eagle","scorpion"])+'</div></div>\n'
     b+=('<section id="how" class="sec w"><p class="k" data-r>How to order</p><h2 data-r>Four steps. No payment page.</h2><ol class="steps">'
      '<li data-r><b>Choose</b><p>Open a tee, pick your size and add it to your bag.</p></li><li data-r style="--d:.08s"><b>Review</b><p>Check your order summary and enter your delivery details.</p></li>'
