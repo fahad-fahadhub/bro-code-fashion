@@ -12,6 +12,8 @@ window.BCF={
  "instagram": "",
  "email": "",
  "currency": "₹",
+ "supabaseUrl": "https://sfezhayjhmvidtjjwfba.supabase.co",
+ "supabasePublishableKey": "sb_publishable_uR4g6zZLb1D7bVqHIw-hMw_THVYuz1P",
  "sizes": [
   "S",
   "M",
