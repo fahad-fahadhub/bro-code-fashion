@@ -56,3 +56,10 @@ tbody tr:hover{background:#fafbfc}
 #product-form-message{font-size:12px;color:var(--green)}
 .product-tools .card-heading{margin-bottom:18px}
 @media(max-width:700px){.form-grid{grid-template-columns:1fr}}
+
+.admin-product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.admin-product-card{display:flex;gap:15px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);min-width:0}
+.admin-product-thumb{width:112px;height:140px;object-fit:cover;border-radius:7px;background:#09090a}
+.admin-product-info{min-width:0;flex:1}.admin-product-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.admin-product-info>small{color:var(--muted);font:10px 'DM Mono',monospace}.admin-product-info p{font-size:12px;color:#c4c0bb;line-height:1.5;margin:8px 0}.admin-product-meta{display:grid;gap:4px;font-size:11px;color:var(--muted)}.admin-product-actions{display:flex;gap:14px;margin-top:10px}
+@media(max-width:1100px){.admin-product-grid{grid-template-columns:1fr}}
+@media(max-width:700px){.admin-product-card{gap:10px}.admin-product-thumb{width:82px;height:110px}}
