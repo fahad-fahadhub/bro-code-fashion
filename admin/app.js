@@ -71,7 +71,7 @@ async function loadAll(){
   $('#today').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
   renderOrders(orders.slice(0,6),'recent-orders');
   renderOrders(orders,'orders-table');
-  renderProducts(products);
+  renderProducts(products,variants,stockByVariant);
   renderInventory(variants,productById,stockByVariant,reservedByVariant);
  }catch(e){message('Could not load dashboard data: '+(e.message||'Unknown error'))}
 }
@@ -124,10 +124,19 @@ productForm.addEventListener('submit',async function(e){
  }catch(err){out.textContent=err.message||'Could not save product.'}
  finally{btn.disabled=false;btn.textContent='Save product'}
 });
-function renderProducts(rows){
+function renderProducts(rows,variants,stock){
  var el=$('#products-table');
  if(!rows.length){el.innerHTML='<div class="empty-state">No products have been added yet.</div>';return}
- el.innerHTML='<table><thead><tr><th>PRODUCT</th><th>CODE</th><th>PRICE</th><th>STATUS</th><th>FEATURED</th></tr></thead><tbody>'+rows.map(function(p){return '<tr><td><b>'+esc(p.name)+'</b></td><td>'+esc(p.product_code)+'</td><td>'+esc(money(p.price_inr))+'</td><td>'+status(p.status)+'</td><td>'+(p.is_featured?'Yes':'No')+'</td></tr>'}).join('')+'</tbody></table>';
+ var grouped={};(variants||[]).forEach(function(v){(grouped[v.product_id]||(grouped[v.product_id]=[])).push(v)});
+ var primary={SCORPION:'back',THISDAY:'back',BALANCE:'front',LABLACK:'back',MYTHIC:'front',LABROWN:'back',SILENCE:'front',EAGLE:'front',SPIDER:'front',UNREAL:'back'};
+ el.innerHTML='<div class="admin-product-grid">'+rows.map(function(p){
+  var code=(p.product_code||'').replace('BCF-',''),view=primary[code]||'front',key=code.toLowerCase(),src='https://fahad-fahadhub.github.io/bro-code-fashion/assets/img/p-'+key+'-'+view+'-800.webp';
+  var vv=grouped[p.id]||[],sizes=vv.map(function(v){return v.size+(v.is_active?'':' (inactive)')}).join(', ');
+  var on=vv.reduce(function(n,v){return n+Number(stock[v.id]||0)},0);
+  return '<article class="admin-product-card"><img class="admin-product-thumb" src="'+src+'" alt="'+esc(p.name)+'" loading="lazy" onerror="this.style.display=\'none\'"><div class="admin-product-info"><div class="admin-product-title"><b>'+esc(p.name)+'</b>'+status(p.status)+'</div><small>'+esc(p.product_code)+'</small><p>'+esc(p.description||'No description')+'</p><div class="admin-product-meta"><span>'+esc(money(p.price_inr))+'</span><span>Sizes: '+esc(sizes||'None')+'</span><span>Opening stock: '+on+'</span></div><div class="admin-product-actions"><button class="text-button" data-edit-product="'+p.id+'">Edit details</button><button class="text-button" data-toggle-product="'+p.id+'">'+(p.status==='active'?'Unpublish':'Publish')+'</button></div></div></article>';
+ }).join('')+'</div>';
+ el.querySelectorAll('[data-toggle-product]').forEach(function(b){b.addEventListener('click',async function(){var p=rows.find(function(x){return x.id===b.dataset.toggleProduct});if(!p)return;var next=p.status==='active'?'draft':'active';var r=await client.from('products').update({status:next,published_at:next==='active'?new Date().toISOString():null}).eq('id',p.id);if(r.error){message(r.error.message);return}await loadAll()})});
+ el.querySelectorAll('[data-edit-product]').forEach(function(b){b.addEventListener('click',async function(){var p=rows.find(function(x){return x.id===b.dataset.editProduct});if(!p)return;var name=prompt('Product name',p.name);if(name===null)return;var priceText=prompt('Price in INR (leave blank for Price on WhatsApp)',p.price_inr==null?'':p.price_inr);if(priceText===null)return;var price=priceText.trim()===''?null:Number(priceText);if(price!==null&&(!Number.isFinite(price)||price<0)){message('Enter a valid non-negative price.');return}var description=prompt('Product description',p.description||'');if(description===null)return;var update=await client.from('products').update({name:name.trim(),price_inr:price,description:description.trim()||null,updated_at:new Date().toISOString()}).eq('id',p.id);if(update.error){message(update.error.message);return}await loadAll()})});
 }
 function renderInventory(variants,products,stock,reserved){
  var rows=variants.map(function(v){var p=products[v.product_id];if(!p)return null;var on=stock[v.id]||0,res=reserved[v.id]||0;return {p:p,v:v,on:on,res:res,available:on-res}}).filter(Boolean);
