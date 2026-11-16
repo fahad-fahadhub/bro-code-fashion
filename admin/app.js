@@ -86,7 +86,7 @@ productForm.addEventListener('submit',async function(e){
  var form=e.currentTarget,btn=form.querySelector('button[type="submit"]'),out=$('#product-form-message');
  var data=new FormData(form);
  var name=String(data.get('name')||'').trim(),code=String(data.get('product_code')||'').trim().toUpperCase();
- var lines=String(data.get('variants')||'').split(/\\r?\\n/).map(function(x){return x.trim()}).filter(Boolean);
+ var lines=String(data.get('variants')||'').split(/\r?\n/).map(function(x){return x.trim()}).filter(Boolean);
 
  var files=Array.from(form.elements.images.files||[]); if(files.some(function(f){return !['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>5*1024*1024})){out.textContent='Each image must be JPEG, PNG or WebP and no larger than 5 MB.';return}
  var variants=[];
