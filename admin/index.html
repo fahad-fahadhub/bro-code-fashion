@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b0b0c">
+  <title>Admin — Bro Code Fashion</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="./app.js"></script>
+</head>
+<body>
+  <main id="login-view" class="login-wrap">
+    <form id="login-form" class="login-card">
+      <div class="brand-mark">BCF<span>.</span></div>
+      <p class="eyebrow">BRO CODE FASHION / ADMIN</p>
+      <h1>Welcome back.</h1>
+      <p class="muted">Sign in with your authorized admin account.</p>
+      <label>Email address<input name="email" type="email" autocomplete="username" required></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+      <p id="login-error" class="error" role="alert"></p>
+      <button class="primary" type="submit">Sign in <span>→</span></button>
+      <p class="footnote">Private admin area. Access is restricted to active BCF admins.</p>
+    </form>
+  </main>
+
+  <div id="app-view" class="app-shell" hidden>
+    <aside class="sidebar">
+      <a class="brand" href="./"><span class="brand-mark">BCF<span>.</span></span><small>ADMIN STUDIO</small></a>
+      <nav aria-label="Admin navigation">
+        <button class="nav-link active" data-page="overview"><span>◫</span> Overview</button>
+        <button class="nav-link" data-page="products"><span>◇</span> Products</button>
+        <button class="nav-link" data-page="inventory"><span>▦</span> Inventory</button>
+        <button class="nav-link" data-page="orders"><span>↗</span> Orders</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="profile"><span class="avatar" id="avatar">B</span><div><b id="admin-name">Admin</b><small id="admin-role">ADMIN</small></div></div>
+        <button id="sign-out" class="signout">Sign out <span>↗</span></button>
+      </div>
+    </aside>
+
+    <section class="main-area">
+      <header class="topbar"><div><p class="eyebrow">BRO CODE FASHION / CONTROL PANEL</p><h1 id="page-title">Overview</h1></div><div class="top-right"><span class="live-dot"></span><span>Supabase connected</span><button id="refresh" class="icon-button" title="Refresh data">↻</button></div></header>
+      <div id="notice" class="notice" role="status" hidden></div>
+      <section id="page-overview" class="page">
+        <div class="welcome-row"><div><p class="eyebrow">YOUR STORE AT A GLANCE</p><h2>Keep the drop moving.</h2><p class="muted">A live view of your catalogue, stock and incoming WhatsApp requests.</p></div><span class="date-chip" id="today"></span></div>
+        <div class="stats-grid">
+          <article class="stat-card"><span>ACTIVE PRODUCTS</span><strong id="stat-products">—</strong><small>Published in the storefront</small></article>
+          <article class="stat-card"><span>LOW STOCK VARIANTS</span><strong id="stat-low">—</strong><small>5 or fewer available</small></article>
+          <article class="stat-card"><span>PENDING REQUESTS</span><strong id="stat-pending">—</strong><small>Awaiting WhatsApp confirmation</small></article>
+          <article class="stat-card"><span>CONFIRMED ORDERS</span><strong id="stat-confirmed">—</strong><small>Orders accepted by the store</small></article>
+        </div>
+        <div class="content-card"><div class="card-heading"><div><p class="eyebrow">LATEST ACTIVITY</p><h3>Recent orders</h3></div><button class="text-button" data-go="orders">View all →</button></div><div id="recent-orders" class="table-wrap"><div class="empty-state">Loading orders…</div></div></div>
+      </section>
+      <section id="page-products" class="page" hidden><div class="section-intro"><div><p class="eyebrow">CATALOGUE</p><h2>Products</h2><p class="muted">Products saved in your Supabase catalogue.</p></div></div><div class="content-card"><div id="products-table" class="table-wrap"><div class="empty-state">Loading products…</div></div></div></section>
+      <section id="page-inventory" class="page" hidden><div class="section-intro"><div><p class="eyebrow">STOCK CONTROL</p><h2>Inventory</h2><p class="muted">On-hand stock, active reservations and available units.</p></div></div><div class="content-card"><div id="inventory-table" class="table-wrap"><div class="empty-state">Loading inventory…</div></div></div></section>
+      <section id="page-orders" class="page" hidden><div class="section-intro"><div><p class="eyebrow">CUSTOMER REQUESTS</p><h2>Orders</h2><p class="muted">WhatsApp order requests recorded by the storefront.</p></div></div><div class="content-card"><div id="orders-table" class="table-wrap"><div class="empty-state">Loading orders…</div></div></div></section>
+      <footer class="app-footer">BRO CODE FASHION <span>ADMIN STUDIO</span><span class="footer-right">Built for the next drop.</span></footer>
+    </section>
+  </div>
+</body>
+</html>
