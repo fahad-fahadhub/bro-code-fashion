@@ -80,6 +80,40 @@ function renderOrders(rows,target){
  if(!rows.length){el.innerHTML='<div class="empty-state">No orders yet. New WhatsApp requests will appear here.</div>';return}
  el.innerHTML='<table><thead><tr><th>ORDER</th><th>CUSTOMER</th><th>DATE</th><th>TOTAL</th><th>STATUS</th></tr></thead><tbody>'+rows.map(function(o){return '<tr><td><b>'+esc(o.order_number)+'</b></td><td>'+esc(o.customer_name)+'<br><small>'+esc(o.phone)+'</small></td><td>'+esc(date(o.created_at))+'</td><td>'+esc(money(o.total_amount_inr))+'</td><td>'+status(o.order_status)+'</td></tr>'}).join('')+'</tbody></table>';
 }
+var productForm=$('#product-form');
+productForm.addEventListener('submit',async function(e){
+ e.preventDefault();
+ var form=e.currentTarget,btn=form.querySelector('button[type="submit"]'),out=$('#product-form-message');
+ var data=new FormData(form);
+ var name=String(data.get('name')||'').trim(),code=String(data.get('product_code')||'').trim().toUpperCase();
+ var lines=String(data.get('variants')||'').split(/\\r?\\n/).map(function(x){return x.trim()}).filter(Boolean);
+ var variants=[];
+ for(var i=0;i<lines.length;i++){
+  var parts=lines[i].split('|').map(function(x){return x.trim()});
+  if(parts.length!==4||!parts[0]||!parts[1]||!parts[2]||!/^\\d+$/.test(parts[3])){out.textContent='Variant line '+(i+1)+' is invalid. Use: SKU | Size | Color | Stock';return}
+  variants.push({sku:parts[0],size:parts[1],color:parts[2],quantity:Number(parts[3])});
+ }
+ if(!variants.length){out.textContent='Add at least one variant.';return}
+ if(new Set(variants.map(function(v){return v.sku.toLowerCase()})).size!==variants.length){out.textContent='Each variant must have a unique SKU.';return}
+ var priceRaw=String(data.get('price_inr')||'').trim();
+ var price=priceRaw===''?null:Number(priceRaw);
+ if(price!==null&&(!Number.isFinite(price)||price<0)){out.textContent='Enter a valid price.';return}
+ btn.disabled=true;btn.textContent='Saving…';out.textContent='';
+ var slug=name.toLowerCase().normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+ try{
+  var p=await client.from('products').insert({name:name,product_code:code,slug:slug,description:String(data.get('description')||'').trim()||null,price_inr:price,status:data.get('status'),is_featured:false,published_at:data.get('status')==='active'?new Date().toISOString():null}).select('id').single();
+  if(p.error)throw p.error;
+  var variantRows=variants.map(function(v){return {product_id:p.data.id,sku:v.sku,size:v.size,color:v.color,is_active:true}});
+  var inserted=await client.from('product_variants').insert(variantRows).select('id,sku');
+  if(inserted.error)throw new Error('Product saved, but variants could not be saved: '+inserted.error.message+' (Product code: '+code+')');
+  var stockRows=inserted.data.map(function(v){var match=variants.find(function(x){return x.sku===v.sku});return {variant_id:v.id,quantity:match.quantity}});
+  var stockResult=await client.from('inventory').insert(stockRows);
+  if(stockResult.error)throw new Error('Product and variants saved, but opening stock could not be saved: '+stockResult.error.message);
+  out.textContent='Product saved successfully with '+variants.length+' variant(s).';
+  form.reset();await loadAll();
+ }catch(err){out.textContent=err.message||'Could not save product.'}
+ finally{btn.disabled=false;btn.textContent='Save product'}
+});
 function renderProducts(rows){
  var el=$('#products-table');
  if(!rows.length){el.innerHTML='<div class="empty-state">No products have been added yet.</div>';return}
