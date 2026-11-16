@@ -92,7 +92,7 @@ productForm.addEventListener('submit',async function(e){
  var variants=[];
  for(var i=0;i<lines.length;i++){
   var parts=lines[i].split('|').map(function(x){return x.trim()});
-  if(parts.length!==4||!parts[0]||!parts[1]||!parts[2]||!/^\\d+$/.test(parts[3])){out.textContent='Variant line '+(i+1)+' is invalid. Use: SKU | Size | Color | Stock';return}
+  if(parts.length!==4||!parts[0]||!parts[1]||!parts[2]||!/^\d+$/.test(parts[3])){out.textContent='Variant line '+(i+1)+' is invalid. Use: SKU | Size | Color | Stock';return}
   variants.push({sku:parts[0],size:parts[1],color:parts[2],quantity:Number(parts[3])});
  }
  if(!variants.length){out.textContent='Add at least one variant.';return}
