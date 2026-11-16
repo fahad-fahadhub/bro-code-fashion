@@ -6,7 +6,7 @@ try {
  if(q.error)throw q.error;
  C.products=(q.data||[]).map(function(r){
   var vs=(r.product_variants||[]).filter(function(v){return v.is_active}).map(function(v){return {id:v.id,sku:v.sku,size:v.size,color:v.color,price:v.price_override_inr==null?r.price_inr:v.price_override_inr,stock:0}});
-  var ims=(r.product_images||[]).sort(function(a,b){return a.display_order-b.display_order}).map(function(i){return {k:i.image_type,label:i.alt_text||i.image_type,url:SB.storage.from('product-images').getPublicUrl(i.storage_path).data.publicUrl}});
+  var ims=(r.product_images||[]).sort(function(a,b){return a.display_order-b.display_order}).map(function(i){return {k:i.image_type,label:i.alt_text||i.image_type,url:SB.storage.from('product-images').getPublicUrl(i.storage_path).data.publicUrl}});var legacy=(C.products||[]).find(function(p){return p.code===r.product_code});if(!ims.length&&legacy)ims=legacy.views.map(function(v){return {k:v.k,label:v.label,url:'assets/img/p-'+legacy.id+'-'+v.k+'-800.webp'}});
   return {id:r.id,code:r.product_code,name:r.name,colour:vs[0]&&vs[0].color||'',desc:r.description||'',views:ims.length?ims:[{k:'front',label:'Product image',url:''}],variants:vs,sizes:vs.map(function(v){return v.size}),price:r.price_inr};
  }).filter(function(p){return p.variants.length});
  C.prices={};C.products.forEach(function(p){C.prices[p.id]=p.price});
@@ -21,6 +21,7 @@ var store={get:function(k){try{return JSON.parse(localStorage.getItem(k))}catch(
 var P={};C.products.forEach(function(p){P[p.id]=p});
 var cart=(store.get('bcf_cart_v1')||[]).filter(function(l){return P[l.id]&&l.qty>0});
 function price(id){var p=P[id];return p&&typeof p.price==='number'?p.price:null}
+function linePrice(l){var p=P[l.id],v=p&&p.variants.find(function(x){return x.id===l.variantId});return v&&typeof v.price==='number'?v.price:price(l.id)}
 function money(n){return C.currency+Number(n).toLocaleString('en-IN')}
 function sizesOf(p){return p.sizes||C.sizes}
 function img(id,v,w){var p=P[id],x=p&&p.views.find(function(a){return a.k===v})||p&&p.views[0];return x&&x.url||'assets/img/p-'+id+'-'+v+'-'+w+'.webp'}
@@ -33,11 +34,11 @@ if(C.metaPixel){!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.ca
 /* ---------- cart */
 function save(){store.set('bcf_cart_v1',cart)}
 function count(){return cart.reduce(function(a,l){return a+l.qty},0)}
-function totals(){var amt=0,unknown=false;cart.forEach(function(l){var p=price(l.id);if(p===null)unknown=true;else amt+=p*l.qty});return{amt:amt,unknown:unknown}}
+function totals(){var amt=0,unknown=false;cart.forEach(function(l){var p=linePrice(l);if(p===null)unknown=true;else amt+=p*l.qty});return{amt:amt,unknown:unknown}}
 function addLine(id,size,qty){var p=P[id],v=p&&p.variants.find(function(x){return x.size===size});if(!v)throw new Error('Size unavailable');var f=cart.filter(function(l){return l.id===id&&l.size===size})[0];if(f)f.qty=Math.min(20,f.qty+qty);else cart.push({id:id,size:size,variantId:v.id,qty:qty});save();render();track('add_to_cart',{item:id,size:size})}
 function setQty(i,q){if(q<=0)cart.splice(i,1);else cart[i].qty=Math.min(20,q);save();render()}
 function totalLine(){var t=totals();if(!cart.length)return '';if(t.unknown&&t.amt===0)return 'Price confirmed on WhatsApp';return money(t.amt)+(t.unknown?' + items priced on WhatsApp':'')}
-function lineHTML(l,i,editable){var p=P[l.id],pr=price(l.id);return '<li class="ln"><img src="'+img(l.id,p.views[0].k,480)+'" alt="" width="64" height="80"><div class="li"><b>'+esc(p.name)+'</b><span>Size '+esc(l.size)+'</span>'+(editable?'<div class="qty" role="group" aria-label="Quantity for '+esc(p.name)+' size '+esc(l.size)+'"><button type="button" data-q="-1" data-i="'+i+'" aria-label="Decrease">−</button><output>'+l.qty+'</output><button type="button" data-q="1" data-i="'+i+'" aria-label="Increase">+</button></div>':'<span>Qty '+l.qty+'</span>')+'</div><div class="lp">'+(pr===null?'<small>Price on WhatsApp</small>':money(pr*l.qty))+(editable?'<button type="button" class="rmv" data-rm="'+i+'" aria-label="Remove '+esc(p.name)+'">Remove</button>':'')+'</div></li>'}
+function lineHTML(l,i,editable){var p=P[l.id],pr=linePrice(l);return '<li class="ln"><img src="'+img(l.id,p.views[0].k,480)+'" alt="" width="64" height="80"><div class="li"><b>'+esc(p.name)+'</b><span>Size '+esc(l.size)+'</span>'+(editable?'<div class="qty" role="group" aria-label="Quantity for '+esc(p.name)+' size '+esc(l.size)+'"><button type="button" data-q="-1" data-i="'+i+'" aria-label="Decrease">−</button><output>'+l.qty+'</output><button type="button" data-q="1" data-i="'+i+'" aria-label="Increase">+</button></div>':'<span>Qty '+l.qty+'</span>')+'</div><div class="lp">'+(pr===null?'<small>Price on WhatsApp</small>':money(pr*l.qty))+(editable?'<button type="button" class="rmv" data-rm="'+i+'" aria-label="Remove '+esc(p.name)+'">Remove</button>':'')+'</div></li>'}
 function render(){
   var n=count();$$('[data-cart-count]').forEach(function(e){e.textContent=n;e.hidden=!n});
   var bl=$('#bag-lines'),ck=$('#co-lines');
