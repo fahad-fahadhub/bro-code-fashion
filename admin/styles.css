@@ -42,3 +42,17 @@ tbody tr:hover{background:#fafbfc}
 .app-footer{border-top-color:var(--line);color:#87909b}
 .app-footer .footer-right{color:#87909b}
 @media(max-width:700px){.sidebar{background:#fff;border-bottom-color:var(--line)}}
+
+/* Product creation form */
+.product-form{display:grid;gap:16px}
+.product-form label{display:grid;gap:7px;color:#3f4853;font-size:12px;font-weight:600}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.product-form input,.product-form select,.product-form textarea{width:100%;padding:11px 12px;border:1px solid #d9dee5;border-radius:7px;background:#fff;color:#17191d;font:13px 'Space Grotesk',sans-serif;outline:none}
+.product-form input:focus,.product-form select:focus,.product-form textarea:focus{border-color:var(--amber);box-shadow:0 0 0 3px #d8891618}
+.product-form textarea{resize:vertical;line-height:1.55}
+.form-help{font-size:11px;color:var(--muted);margin:0}
+.form-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.form-submit{width:auto;min-width:150px;display:block;margin:0}
+#product-form-message{font-size:12px;color:var(--green)}
+.product-tools .card-heading{margin-bottom:18px}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr}}
