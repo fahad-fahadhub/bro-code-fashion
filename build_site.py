@@ -22,6 +22,7 @@ PRODUCTS=[
 LBL={"front":"Front print","back":"Back print"}
 prods=[dict(id=i,code="BCF-"+i.upper(),name=n,colour=c,desc=d,views=[dict(k=v,label=LBL[v]) for v in vs]) for i,n,c,vs,d in PRODUCTS]
 CONFIG={"brand":NAME,"whatsapp":WA,"phone":PH_DISP,"instagram":"","email":"","currency":"₹",
+ "supabaseUrl":"https://sfezhayjhmvidtjjwfba.supabase.co","supabasePublishableKey":"sb_publishable_uR4g6zZLb1D7bVqHIw-hMw_THVYuz1P",
  "sizes":["S","M","L","XL"],"ga4":"","metaPixel":"",
  "prices":{p["id"]:None for p in prods},"products":prods}
 def cfgjs():
@@ -137,13 +138,13 @@ def index(preview=False):
      '<div class="fld"><label for="f-name">Full name</label><input id="f-name" name="name" autocomplete="name" required aria-describedby="e-name"><span class="err" id="e-name" role="alert"></span></div>'
      '<div class="fld"><label for="f-phone">Mobile number</label><input id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile number" required aria-describedby="e-phone"><span class="err" id="e-phone" role="alert"></span></div>'
      '<div class="fld"><label for="f-address">Delivery address</label><textarea id="f-address" name="address" autocomplete="street-address" required aria-describedby="e-address"></textarea><span class="err" id="e-address" role="alert"></span></div>'
-     '<div class="f2"><div class="fld"><label for="f-city">City</label><input id="f-city" name="city" autocomplete="address-level2" required aria-describedby="e-city"><span class="err" id="e-city" role="alert"></span></div><div class="fld"><label for="f-pin">Pincode</label><input id="f-pin" name="pincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" required aria-describedby="e-pincode"><span class="err" id="e-pincode" role="alert"></span></div></div>'
+     '<div class="f2"><div class="fld"><label for="f-city">City</label><input id="f-city" name="city" autocomplete="address-level2" required aria-describedby="e-city"><span class="err" id="e-city" role="alert"></span></div><div class="fld"><label for="f-state">State</label><input id="f-state" name="state" autocomplete="address-level1" required aria-describedby="e-state"><span class="err" id="e-state" role="alert"></span></div></div><div class="fld"><label for="f-pin">Pincode</label><input id="f-pin" name="pincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" required aria-describedby="e-pincode"><span class="err" id="e-pincode" role="alert"></span></div>'
      '<div class="fld"><label for="f-notes">Notes (optional)</label><textarea id="f-notes" name="notes" placeholder="Anything we should know?"></textarea></div>'
      '<button class="btn wa confirm" type="submit">'+WA_ICON+'Confirm order</button><p class="tiny" style="margin-top:12px">Tapping Confirm order opens WhatsApp with your full order summary and details written out. Press send in WhatsApp to place your order. No payment is taken on this website.</p></form>'
      '<aside class="sum" aria-label="Order summary"><h3>Order summary</h3><ul class="lines" id="co-lines"></ul><div class="tot" style="margin-top:14px"><span>Total</span><span id="co-total"></span></div><p class="tiny" style="margin-top:10px">Delivery charges and payment are confirmed with you on WhatsApp.</p></aside></div></div>'
      '<div id="co-done" class="done" hidden><div class="ok" aria-hidden="true">✓</div><h2 style="margin:0">Your order is ready to send</h2><p class="lead" style="margin:0">WhatsApp should have opened with your order written out. Press <b>send</b> there to place it. We will confirm availability, delivery and payment with you, 9 AM to 9 PM.</p>'
      '<p class="k" style="margin:0">Order ID: <span id="done-id"></span></p><pre id="done-msg"></pre><div class="row"><a class="btn wa" id="done-open" href="#" target="_blank" rel="noopener">'+WA_ICON+'Open WhatsApp</a><button class="btn ghost" type="button" id="done-copy">Copy order message</button><button class="btn ghost" type="button" id="done-more">Keep shopping</button></div><p class="tiny">WhatsApp did not open? Tap Open WhatsApp, or copy the message and send it to '+PH_DISP+'.</p></div></dialog>\n')
-    b+='<script src="assets/js/config.js"></script>\n<script src="assets/js/app.js" defer></script>\n</body>\n</html>\n'
+    b+='<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>\n<script src="assets/js/config.js"></script>\n<script src="assets/js/app.js" defer></script>\n</body>\n</html>\n'
     return h+b
 def policy(slug,title,desc,body):
     h=head(title+" | Bro Code Fashion",desc,slug,"",False)
