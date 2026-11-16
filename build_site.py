@@ -22,7 +22,7 @@ PRODUCTS=[
 LBL={"front":"Front print","back":"Back print"}
 prods=[dict(id=i,code="BCF-"+i.upper(),name=n,colour=c,desc=d,views=[dict(k=v,label=LBL[v]) for v in vs]) for i,n,c,vs,d in PRODUCTS]
 CONFIG={"brand":NAME,"whatsapp":WA,"phone":PH_DISP,"instagram":"","email":"","currency":"₹",
- "supabaseUrl":"https://sfezhayjhmvidtjjwfba.supabase.co","supabasePublishableKey":"sb_publishable_uR4g6zZLb1D7bVqHIw-hMw_THVYuz1P",
+ "supabaseUrl":"https://sfezhayjhmvidtjjwfba.supabase.co","supabasePublishableKey":"sb_publishable_uR4g6zZLb1D1b7VqHIw-hMw_THVYuz1P",
  "sizes":["S","M","L","XL"],"ga4":"","metaPixel":"",
  "prices":{p["id"]:None for p in prods},"products":prods}
 def cfgjs():
