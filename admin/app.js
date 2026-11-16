@@ -87,6 +87,8 @@ productForm.addEventListener('submit',async function(e){
  var data=new FormData(form);
  var name=String(data.get('name')||'').trim(),code=String(data.get('product_code')||'').trim().toUpperCase();
  var lines=String(data.get('variants')||'').split(/\\r?\\n/).map(function(x){return x.trim()}).filter(Boolean);
+
+ var files=Array.from(form.elements.images.files||[]); if(files.some(function(f){return !['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>5*1024*1024})){out.textContent='Each image must be JPEG, PNG or WebP and no larger than 5 MB.';return}
  var variants=[];
  for(var i=0;i<lines.length;i++){
   var parts=lines[i].split('|').map(function(x){return x.trim()});
@@ -109,7 +111,15 @@ productForm.addEventListener('submit',async function(e){
   var stockRows=inserted.data.map(function(v){var match=variants.find(function(x){return x.sku===v.sku});return {variant_id:v.id,quantity:match.quantity}});
   var stockResult=await client.from('inventory').insert(stockRows);
   if(stockResult.error)throw new Error('Product and variants saved, but opening stock could not be saved: '+stockResult.error.message);
-  out.textContent='Product saved successfully with '+variants.length+' variant(s).';
+  for(var imageIndex=0;imageIndex<files.length;imageIndex++){
+   var file=files[imageIndex],extension=file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'img';
+   var path=p.data.id+'/'+String(imageIndex+1).padStart(2,'0')+'-'+Date.now()+'.'+extension;
+   var uploaded=await client.storage.from('product-images').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+   if(uploaded.error)throw new Error('Product and stock saved, but image upload failed: '+uploaded.error.message);
+   var imageRow=await client.from('product_images').insert({product_id:p.data.id,storage_path:path,image_type:imageIndex===0?'front':'detail',alt_text:name+' product image '+(imageIndex+1),display_order:imageIndex});
+   if(imageRow.error)throw new Error('Image uploaded but its product record could not be saved: '+imageRow.error.message);
+  }
+  out.textContent='Product saved with '+variants.length+' variant(s) and '+files.length+' image(s).';
   form.reset();await loadAll();
  }catch(err){out.textContent=err.message||'Could not save product.'}
  finally{btn.disabled=false;btn.textContent='Save product'}
