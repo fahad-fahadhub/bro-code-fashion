@@ -50,7 +50,7 @@ async function loadAll(){
  clearMessage();
  try{
   var results=await Promise.all([
-   client.from('products').select('id,name,product_code,description,price_inr,status,is_featured,updated_at').order('created_at',{ascending:false}),
+   client.from('products').select('id,name,product_code,description,price_inr,status,is_featured,updated_at,product_images(id,storage_path,image_type,alt_text,display_order)').order('created_at',{ascending:false}),
    client.from('product_variants').select('id,product_id,sku,size,color,is_active,price_override_inr'),
    client.from('inventory').select('variant_id,quantity,updated_at'),
    client.from('inventory_reservations').select('variant_id,quantity,status,expires_at').eq('status','active').gt('expires_at',new Date().toISOString()),
@@ -136,8 +136,52 @@ function renderProducts(rows,variants,stock){
   return '<article class="admin-product-card"><div class="admin-product-gallery">'+gallery+'</div><div class="admin-product-info"><div class="admin-product-title"><b>'+esc(p.name)+'</b>'+status(p.status)+'</div><small>'+esc(p.product_code)+'</small><p>'+esc(p.description||'No description')+'</p><div class="admin-product-meta"><span>'+esc(money(p.price_inr))+'</span><span>Sizes: '+esc(sizes||'None')+'</span><span>Opening stock: '+on+'</span></div><div class="admin-product-actions"><button class="text-button" data-edit-product="'+p.id+'">Edit details</button><button class="text-button" data-toggle-product="'+p.id+'">'+(p.status==='active'?'Unpublish':'Publish')+'</button></div></div></article>';
  }).join('')+'</div>';
  el.querySelectorAll('[data-toggle-product]').forEach(function(b){b.addEventListener('click',async function(){var p=rows.find(function(x){return x.id===b.dataset.toggleProduct});if(!p)return;var next=p.status==='active'?'draft':'active';var r=await client.from('products').update({status:next,published_at:next==='active'?new Date().toISOString():null}).eq('id',p.id);if(r.error){message(r.error.message);return}await loadAll()})});
- el.querySelectorAll('[data-edit-product]').forEach(function(b){b.addEventListener('click',async function(){var p=rows.find(function(x){return x.id===b.dataset.editProduct});if(!p)return;var name=prompt('Product name',p.name);if(name===null)return;var priceText=prompt('Price in INR (leave blank for Price on WhatsApp)',p.price_inr==null?'':p.price_inr);if(priceText===null)return;var price=priceText.trim()===''?null:Number(priceText);if(price!==null&&(!Number.isFinite(price)||price<0)){message('Enter a valid non-negative price.');return}var description=prompt('Product description',p.description||'');if(description===null)return;var update=await client.from('products').update({name:name.trim(),price_inr:price,description:description.trim()||null,updated_at:new Date().toISOString()}).eq('id',p.id);if(update.error){message(update.error.message);return}await loadAll()})});
+ el.querySelectorAll('[data-edit-product]').forEach(function(b){b.addEventListener('click',function(){var p=rows.find(function(x){return x.id===b.dataset.editProduct});if(p)openProductEditor(p,grouped[p.id]||[],stock)})});
 }
+function openProductEditor(product,variants,stock){
+ var old=document.getElementById('product-editor');if(old)old.remove();
+ var stockById={};stock.forEach(function(x){stockById[x.variant_id]=Number(x.quantity)||0});
+ var imgs=(product.product_images||[]).slice().sort(function(a,b){return a.display_order-b.display_order});
+ var modal=document.createElement('div');modal.id='product-editor';modal.className='editor-backdrop';
+ modal.innerHTML='<section class="editor-panel" role="dialog" aria-modal="true" aria-labelledby="editor-title"><header class="editor-head"><div><p class="eyebrow">CATALOGUE MANAGEMENT</p><h2 id="editor-title">Edit product</h2></div><button type="button" class="icon-button" data-editor-close aria-label="Close">×</button></header><form id="editor-form" class="product-form"><div class="form-grid"><label>Product name<input name="name" required maxlength="120"></label><label>Product code<input name="product_code" readonly></label><label>Price (INR)<input name="price_inr" type="number" min="0" step="0.01" placeholder="Leave blank for WhatsApp"></label><label>Visibility<select name="status"><option value="draft">Draft</option><option value="active">Published</option></select></label></div><label>Description<textarea name="description" rows="3"></textarea></label><div><b>Current product images</b><div class="editor-images" id="editor-images"></div></div><label>Add images <span class="muted">(JPEG, PNG or WebP · max 5 MB each)</span><input name="new_images" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><label>Variants and stock <span class="muted">(one per line: SKU | Size | Color | Stock)</span><textarea name="variants" rows="7" required></textarea></label><p class="form-help">Keep a line to retain a variant. Remove a line to deactivate it; variants with order history are retained, not deleted.</p><div class="form-actions"><button class="primary form-submit" type="submit">Save changes</button><button class="text-button" type="button" data-editor-close>Cancel</button><span id="editor-message" role="status"></span></div></form></section>';
+ document.body.appendChild(modal);
+ var f=modal.querySelector('#editor-form'),msg=modal.querySelector('#editor-message');
+ f.elements.name.value=product.name||'';f.elements.product_code.value=product.product_code||'';f.elements.price_inr.value=product.price_inr==null?'':product.price_inr;f.elements.status.value=product.status;f.elements.description.value=product.description||'';
+ f.elements.variants.value=variants.filter(function(v){return v.is_active}).map(function(v){return [v.sku,v.size,v.color,stockById[v.id]||0].join(' | ')}).join('\n');
+ var imageBox=modal.querySelector('#editor-images');
+ if(!imgs.length)imageBox.innerHTML='<p class="muted">No uploaded images yet. Existing storefront artwork remains available as fallback.</p>';
+ else imageBox.innerHTML=imgs.map(function(im){var url=client.storage.from('product-images').getPublicUrl(im.storage_path).data.publicUrl;return '<figure><img src="'+esc(url)+'" alt="'+esc(im.alt_text||product.name)+'"><figcaption>'+esc(im.image_type)+' <button type="button" class="text-button danger-text" data-remove-image="'+im.id+'">Remove</button></figcaption></figure>'}).join('');
+ modal.querySelectorAll('[data-editor-close]').forEach(function(x){x.addEventListener('click',function(){modal.remove()})});
+ modal.addEventListener('click',function(e){if(e.target===modal)modal.remove()});
+ imageBox.querySelectorAll('[data-remove-image]').forEach(function(btn){btn.addEventListener('click',async function(){if(!confirm('Remove this image from the product?'))return;btn.disabled=true;var im=imgs.find(function(x){return x.id===btn.dataset.removeImage});var del=await client.from('product_images').delete().eq('id',im.id);if(del.error){msg.textContent='Could not remove image: '+del.error.message;btn.disabled=false;return}var fileDel=await client.storage.from('product-images').remove([im.storage_path]);if(fileDel.error){msg.textContent='Image record removed, but storage cleanup failed: '+fileDel.error.message;return}imgs=imgs.filter(function(x){return x.id!==im.id});btn.closest('figure').remove();if(!imgs.length)imageBox.innerHTML='<p class="muted">No uploaded images yet.</p>'})})});
+ f.addEventListener('submit',async function(e){
+  e.preventDefault();var submit=f.querySelector('[type="submit"]');submit.disabled=true;submit.textContent='Saving…';msg.textContent='';
+  try{
+   var name=f.elements.name.value.trim(),priceText=f.elements.price_inr.value.trim(),price=priceText===''?null:Number(priceText);
+   if(price!==null&&(!Number.isFinite(price)||price<0))throw new Error('Enter a valid non-negative price.');
+   var lines=f.elements.variants.value.split(/\r?\n/).map(function(x){return x.trim()}).filter(Boolean),parsed=[];
+   lines.forEach(function(line,i){var z=line.split('|').map(function(x){return x.trim()});if(z.length!==4||!z[0]||!['S','M','L','XL'].includes(z[1].toUpperCase())||!z[2]||!/^\d+$/.test(z[3]))throw new Error('Variant line '+(i+1)+' is invalid. Use SKU | S/M/L/XL | Color | Stock');parsed.push({sku:z[0],size:z[1].toUpperCase(),color:z[2],quantity:Number(z[3])})});
+   if(!parsed.length)throw new Error('At least one active variant is required.');
+   if(new Set(parsed.map(function(x){return x.sku.toLowerCase()})).size!==parsed.length)throw new Error('Variant SKUs must be unique.');
+   var files=Array.from(f.elements.new_images.files||[]);if(files.some(function(x){return !['image/jpeg','image/png','image/webp'].includes(x.type)||x.size>5*1024*1024}))throw new Error('Each image must be JPEG, PNG or WebP and no larger than 5 MB.');
+   var up=await client.from('products').update({name:name,slug:name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),description:f.elements.description.value.trim()||null,price_inr:price,status:f.elements.status.value,published_at:f.elements.status.value==='active'?(product.published_at||new Date().toISOString()):null,updated_at:new Date().toISOString()}).eq('id',product.id);
+   if(up.error)throw up.error;
+   var existingBySku={};variants.forEach(function(v){existingBySku[v.sku.toLowerCase()]=v});
+   var keep={};
+   for(var i=0;i<parsed.length;i++){
+    var v=parsed[i],old=existingBySku[v.sku.toLowerCase()],variantId;
+    if(old){variantId=old.id;var vu=await client.from('product_variants').update({size:v.size,color:v.color,is_active:true}).eq('id',old.id);if(vu.error)throw new Error('Variant '+v.sku+' update failed: '+vu.error.message)}
+    else{var vi=await client.from('product_variants').insert({product_id:product.id,sku:v.sku,size:v.size,color:v.color,is_active:true}).select('id').single();if(vi.error)throw new Error('Could not add variant '+v.sku+': '+vi.error.message);variantId=vi.data.id}
+    keep[variantId]=true;var si=await client.from('inventory').upsert({variant_id:variantId,quantity:v.quantity,updated_at:new Date().toISOString()},{onConflict:'variant_id'});if(si.error)throw new Error('Stock update failed for '+v.sku+': '+si.error.message);
+   }
+   for(var j=0;j<variants.length;j++){if(!keep[variants[j].id]&&variants[j].is_active){var off=await client.from('product_variants').update({is_active:false}).eq('id',variants[j].id);if(off.error)throw new Error('Could not deactivate removed variant '+variants[j].sku+': '+off.error.message)}}
+   for(var k=0;k<files.length;k++){var file=files[k],ext=file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g,'')||'img',path=product.id+'/'+Date.now()+'-'+k+'.'+ext;var put=await client.storage.from('product-images').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});if(put.error)throw new Error('Image upload failed: '+put.error.message);var rec=await client.from('product_images').insert({product_id:product.id,storage_path:path,image_type:imgs.length===0&&k===0?'front':'detail',alt_text:name+' product image '+(imgs.length+k+1),display_order:imgs.length+k});if(rec.error)throw new Error('Image uploaded but image record failed: '+rec.error.message)}
+   msg.textContent='Saved. Product, variants, stock and images are updated in Supabase.';await loadAll();setTimeout(function(){modal.remove()},700);
+  }catch(err){msg.textContent=err.message||'Could not save changes.'}
+  finally{submit.disabled=false;submit.textContent='Save changes'}
+ });
+}
+
 function renderInventory(variants,products,stock,reserved){
  var rows=variants.map(function(v){var p=products[v.product_id];if(!p)return null;var on=stock[v.id]||0,res=reserved[v.id]||0;return {p:p,v:v,on:on,res:res,available:on-res}}).filter(Boolean);
  var el=$('#inventory-table');
