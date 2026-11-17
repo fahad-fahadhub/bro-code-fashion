@@ -63,3 +63,16 @@ tbody tr:hover{background:#fafbfc}
 .admin-product-info{min-width:0;flex:1}.admin-product-title{display:flex;align-items:center;justify-content:space-between;gap:8px}.admin-product-info>small{color:var(--muted);font:10px 'DM Mono',monospace}.admin-product-info p{font-size:12px;color:#c4c0bb;line-height:1.5;margin:8px 0}.admin-product-meta{display:grid;gap:4px;font-size:11px;color:var(--muted)}.admin-product-actions{display:flex;gap:14px;margin-top:10px}
 @media(max-width:1100px){.admin-product-grid{grid-template-columns:1fr}}
 @media(max-width:700px){.admin-product-card{gap:10px}.admin-product-thumb{width:82px;height:110px}}
+
+/* Existing product editor */
+.editor-backdrop{position:fixed;inset:0;z-index:1000;background:#10151dcc;display:flex;justify-content:center;align-items:flex-start;padding:24px;overflow:auto}
+.editor-panel{width:min(900px,100%);background:#fff;border:1px solid #e3e6ea;border-radius:14px;padding:24px;box-shadow:0 25px 80px #0003;color:#17191d}
+.editor-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e7eaee;padding-bottom:15px;margin-bottom:18px}
+.editor-head h2{margin:4px 0;font-size:22px}
+.editor-images{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.editor-images figure{margin:0;width:125px;border:1px solid #e3e6ea;border-radius:8px;padding:7px;background:#fafafa}
+.editor-images img{display:block;width:100%;height:135px;object-fit:contain;background:#f1f3f5;border-radius:5px}
+.editor-images figcaption{font-size:11px;color:#68717d;padding-top:6px;display:flex;align-items:center;justify-content:space-between;gap:4px}
+.danger-text{color:#b42318}
+#editor-message{font-size:12px;color:#23834d;flex-basis:100%}
+@media(max-width:700px){.editor-backdrop{padding:8px}.editor-panel{padding:15px}.editor-head h2{font-size:19px}}
